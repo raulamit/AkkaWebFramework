@@ -154,13 +154,13 @@ object server {
 
 
     def main(args:Array[String]):Unit = {
-      {{{new HttpServer(8080, { case (request, server) =>
+      new HttpServer(8080, { case (request, server) =>
         (request.method, request.path) match {
           case ("GET", "/") => TextResponse("helloworld")
           case ("GET", "/img") => FileResponse("123.png", "image/png").and(_.withHeader("X-x", "O-o"))
           case ("GET", s) => Response.guessType(s)
         }
-      }, println).start()}}}
+      }, println).start()
     }
   }
 
