@@ -1,6 +1,7 @@
 import java.io._
 import java.net.ServerSocket
 
+import akka.actor.{ActorRef, ActorSystem, Props}
 import server.{HttpServer, Request, Response}
 //import server.{FileResponse, HttpServer, Response, TextResponse}
 
@@ -19,17 +20,21 @@ object MyActorWebserver {
 
     def start(): Unit = if (!started) {
       started = true
-      // create ActorSystem
+      val system: ActorSystem = ActorSystem("helloAkka")
+      val writer: ActorRef = system.actorOf(Writer.props,"writer")
+      val reader: ActorRef = system.actorOf(Reader.props(writer), "Reader")
+
       println("started")
       try
           while (!stopped) {
             val socket = serverSocket.accept()
             println(s"open connection ${socket.hashCode()}")
-            try {
-              val request = readRequestFrom(new BufferedReader(new InputStreamReader(socket.getInputStream())))
-              writeResponse(request, socket.getOutputStream())
-            } finally
-              socket.close()
+//            try {
+//              val request = readRequestFrom(new BufferedReader(new InputStreamReader(socket.getInputStream())))
+              reader ! socket
+//              writeResponse(request, socket.getOutputStream())
+//            } finally
+//              socket.close()
             println(s"close connection ${socket.hashCode()}")
           }
       finally
@@ -57,8 +62,7 @@ object MyActorWebserver {
         case "POST" => Request(POST(path, new String(buffer)))
         case "PUT" => Request(PUT(path, new String(buffer)))
       }
-
-      request
+      
     }
 
     private def writeResponse(request: Request, output: OutputStream) =
