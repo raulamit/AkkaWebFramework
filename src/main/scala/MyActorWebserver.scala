@@ -52,7 +52,7 @@ object MyActorWebserver {
         headers += (header -> value)
         line = input.readLine()
       }
-      val i:Int = Integer.parseInt((headers("Content-Length")))
+      val i:Int = Integer.parseInt(headers("Content-Length"))
       val buffer = new Array[Char](i)
       input.read(buffer)
       println("")

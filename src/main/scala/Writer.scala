@@ -1,23 +1,23 @@
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 
 /**
   * Created by araul on 12/3/17.
   */
 object Writer {
   //#printer-messages
-  def props: Props = Props[Printer]
+  def props: Props = Props[Writer]
   //#printer-messages
-  final case class Writer(data: String)
+  final case class Out(data: String)
 }
 //#printer-messages
 //#printer-companion
 
 //#printer-actor
-class Printer extends Actor with ActorLogging {
+class Writer extends Actor with ActorLogging {
   import Writer._
 
   def receive = {
-    case Greeting(greeting) =>
-      log.info(s"Greeting received (from ${sender()}): $greeting")
+    case Out(data) =>
+      println("Writing data")//(s"Data received (from ${sender()}): $data")
   }
 }
