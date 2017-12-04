@@ -19,7 +19,7 @@ object MyActorWebserver {
 
     def start(): Unit = if (!started) {
       started = true
-
+      // create ActorSystem
       println("started")
       try
           while (!stopped) {
@@ -27,7 +27,6 @@ object MyActorWebserver {
             println(s"open connection ${socket.hashCode()}")
             try {
               val request = readRequestFrom(new BufferedReader(new InputStreamReader(socket.getInputStream())))
-//              Request("request.method","request.url")
               writeResponse(request, socket.getOutputStream())
             } finally
               socket.close()
@@ -48,14 +47,23 @@ object MyActorWebserver {
         headers += (header -> value)
         line = input.readLine()
       }
+      val i:Int = Integer.parseInt((headers("Content-Length")))
+      val buffer = new Array[Char](i)
+      input.read(buffer)
       println("")
-      Request(method, path)
+      val request = method match {
+        case "GET" => Request(GET(path))
+        case "DELETE" => Request(DELETE(path))
+        case "POST" => Request(POST(path, new String(buffer)))
+        case "PUT" => Request(PUT(path, new String(buffer)))
+      }
+
+      request
     }
 
     private def writeResponse(request: Request, output: OutputStream) =
       try
-        this.routes(Request("GET", "/"))
-//        handler(request, this).writeTo(output)
+        this.routes(request)
       catch {
         case _: MatchError => Response.notFound.writeTo(output)
         case e: Throwable =>
@@ -71,15 +79,16 @@ object MyActorWebserver {
   def main(args: Array[String]): Unit = {
     val config = new Config()
     val routes =  Routes({
-      case Request("GET", "/hell") => println("actor hel")
-      case Request("GET", _) => println("helloWorld")
-      //TextResponse("helloworld")
-      //case ("GET", "/img") => FileResponse("123.png", "image/png").and(_.withHeader("X-x", "O-o"))
-      //      case ("GET", s) => Response.guessType(s)
+      case Request(GET("/hell")) => println("actor hel")
+      case Request(POST("/post", body)) => println(body)
     })
-//    { server => new RequestHandler(server, routes) }
-      routes(Request("GET", "sdsfd"))
-//    val webserver = new ActorWebserver(config, routes)
-//    webserver.start()
+    val webserver = new ActorWebserver(config, routes)
+    webserver.start()
+    val num = 1000
+    var i=0
+    while(i < num) {
+      i+=1;
+    }
+    webserver.stop()
   }
 }

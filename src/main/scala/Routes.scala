@@ -14,4 +14,11 @@ object Routes{
     funcList.toList.reduceLeft { (functions, f) => functions orElse f }
   }
 }
-case class Request private (method: String, path: String)
+
+
+case class Request private (method: Method)
+sealed abstract trait Method
+case class GET(path: String) extends Method
+case class DELETE(path: String) extends Method
+case class PUT(path: String, body: String) extends Method
+case class POST(path: String, body: String) extends Method
