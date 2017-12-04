@@ -12,7 +12,7 @@ object Reader {
 
 }
 
-class Reader(printerActor: ActorRef) extends Actor {
+class Reader(writer: ActorRef) extends Actor {
 
   import Reader._
   import Writer._
@@ -22,6 +22,8 @@ class Reader(printerActor: ActorRef) extends Actor {
     case socket: Socket => {
       val input = new BufferedReader(new InputStreamReader(socket.getInputStream()))
       val request: Request = requestFromServer(input)
+      writer ! out(request)
+
     }
   }
 

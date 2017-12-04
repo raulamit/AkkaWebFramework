@@ -7,7 +7,8 @@ object Writer {
   //#printer-messages
   def props: Props = Props[Writer]
   //#printer-messages
-  final case class Out(data: String)
+//  final case class request(data: String)
+  final case class out(req: Request)
 }
 //#printer-messages
 //#printer-companion
@@ -17,7 +18,8 @@ class Writer extends Actor with ActorLogging {
   import Writer._
 
   def receive = {
-    case Out(data) =>
-      println("Writing data")//(s"Data received (from ${sender()}): $data")
+    case out(req) =>{
+      println("Fetch from User actor",req)
+    }
   }
 }
