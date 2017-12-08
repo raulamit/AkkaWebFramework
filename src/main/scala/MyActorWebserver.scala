@@ -23,7 +23,6 @@ object MyActorWebserver {
       val system: ActorSystem = ActorSystem("helloAkka")
       val writer: ActorRef = system.actorOf(Writer.props,"writer")
       val reader: ActorRef = system.actorOf(Reader.props(writer), "Reader")
-
       println("started")
       try
           while (!stopped) {
@@ -48,11 +47,6 @@ object MyActorWebserver {
     })
     val webserver = new ActorWebserver(config, routes)
     webserver.start()
-    val num = 1000
-    var i=0
-    while(i < num) {
-      i+=1;
-    }
     webserver.stop()
   }
 }

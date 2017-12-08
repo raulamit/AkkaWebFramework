@@ -34,16 +34,16 @@ class Reader(writer: ActorRef) extends Actor {
       headers += (header -> value)
       line = input.readLine()
     }
-  var buffer = ""
-  try{
-        val i: Int = Integer.parseInt(headers("Content-Length"))
-        val bufferRead = new Array[Char](i)
-        input.read(bufferRead)
-        buffer = buffer.concat(new String(bufferRead))
-  }catch {
-    case e:NoSuchElementException => {
+    var buffer = ""
+    try{
+          val i: Int = Integer.parseInt(headers("Content-Length"))
+          val bufferRead = new Array[Char](i)
+          input.read(bufferRead)
+          buffer = buffer.concat(new String(bufferRead))
+    }catch {
+          case e:NoSuchElementException => {
+      }
     }
-  }
     val request = method match {
       case "GET" => Request(GET(path))
       case "DELETE" => Request(DELETE(path))

@@ -1,6 +1,6 @@
 
 
-import java.io.{OutputStream, PrintWriter, StringWriter, Writer}
+import java.io.{OutputStream}
 import java.net.Socket
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
@@ -11,7 +11,6 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
   */
 object Writer {
   def props: Props = Props[Writer]
-//  final case class outWrite(req : Request)
 }
 
 trait Response {
@@ -35,7 +34,6 @@ case class TextResponse(body: String, output: OutputStream,info: ResponseInfo = 
 
   override def writeTo(output: OutputStream) = {
     val result = info.withHeader("Content-Length", body.length.toString).serialized + "\r\n\r\n" + body
-    println("Inside TEXT response")
     output.write(result.getBytes)
     output.flush()
   }
@@ -43,25 +41,20 @@ case class TextResponse(body: String, output: OutputStream,info: ResponseInfo = 
 }
 class Writer extends Actor with ActorLogging{
 
-//  info: ResponseInfo = ResponseInfo()
-
   def receive ={
 
     case (request, socket: Socket) => {
       request match
       {
-        case Request(POST("/post", body)) => {
-          println("It matched !!!!")
-          println(body)
-
+        case Request(POST(_, body)) => {
           TextResponse(body, socket.getOutputStream()).writeTo(socket.getOutputStream())
         }
 
-        case Request(GET("/hello")) =>{
+        case Request(GET(_)) =>{
           TextResponse("OK", socket.getOutputStream()).writeTo(socket.getOutputStream())
         }
 
-        case Request(PUT("/putTest", body)) => {
+        case Request(PUT(_, body)) => {
           TextResponse(body, socket.getOutputStream()).writeTo(socket.getOutputStream())
         }
       }
@@ -69,6 +62,3 @@ class Writer extends Actor with ActorLogging{
    }
 
   }
-
-
-
