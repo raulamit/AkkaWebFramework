@@ -4,26 +4,22 @@
 
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.Socket
+import java.util.NoSuchElementException
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 
 object Reader {
   def props(writerRef: ActorRef): Props = Props(new Reader(writerRef))
-
 }
 
 class Reader(writer: ActorRef) extends Actor {
-
-  import Reader._
-  import Writer._
 
   def receive = {
 
     case socket: Socket => {
       val input = new BufferedReader(new InputStreamReader(socket.getInputStream()))
       val request: Request = requestFromServer(input)
-      writer ! out(request)
-
+      writer ! (request, socket)
     }
   }
 
@@ -38,10 +34,16 @@ class Reader(writer: ActorRef) extends Actor {
       headers += (header -> value)
       line = input.readLine()
     }
-    val i: Int = Integer.parseInt((headers("Content-Length")))
-    val buffer = new Array[Char](i)
-    input.read(buffer)
-    println("")
+  var buffer = ""
+  try{
+        val i: Int = Integer.parseInt(headers("Content-Length"))
+        val bufferRead = new Array[Char](i)
+        input.read(bufferRead)
+        buffer = buffer.concat(new String(bufferRead))
+  }catch {
+    case e:NoSuchElementException => {
+    }
+  }
     val request = method match {
       case "GET" => Request(GET(path))
       case "DELETE" => Request(DELETE(path))
