@@ -16,10 +16,14 @@ class Reader(writer: ActorRef) extends Actor {
 
   def receive = {
 
-    case socket: Socket => {
+    case (socket: Socket, routes : PartialFunction[(Request, ActorRef), Unit]) => {
       val input = new BufferedReader(new InputStreamReader(socket.getInputStream()))
       val request: Request = requestFromServer(input)
-      writer ! (request, socket)
+      // bang writer to update the socket in its state
+      writer ! WhoToSend(socket)
+      //send writer object to the user
+      routes((request, writer))
+
     }
   }
 

@@ -41,24 +41,20 @@ case class TextResponse(body: String, output: OutputStream,info: ResponseInfo = 
 }
 class Writer extends Actor with ActorLogging{
 
+  var socket: Socket = _
   def receive ={
-
-    case (request, socket: Socket) => {
-      request match
-      {
-        case Request(POST(_, body)) => {
-          TextResponse(body, socket.getOutputStream()).writeTo(socket.getOutputStream())
-        }
-
-        case Request(GET(_)) =>{
-          TextResponse("OK", socket.getOutputStream()).writeTo(socket.getOutputStream())
-        }
-
-        case Request(PUT(_, body)) => {
-          TextResponse(body, socket.getOutputStream()).writeTo(socket.getOutputStream())
-        }
-      }
+    case WhoToSend(socket) =>this.socket=socket
+    case WriteRaw(response) => {
+      val output: OutputStream = socket.getOutputStream
+      val info: ResponseInfo = ResponseInfo()
+      val result = info.withHeader("Content-Length", response.length.toString).serialized + "\r\n\r\n" + response
+      output.write(result.getBytes)
+      output.flush()
+      output.close()
+      println(s"close connection ${socket.hashCode()}")
+      socket.close()
     }
    }
+}
 
-  }
+case class WhoToSend(socket: Socket)

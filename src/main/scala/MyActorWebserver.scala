@@ -12,7 +12,7 @@ object MyActorWebserver {
 
   class ActorWebserver(
                          val config: Config,
-                         val routes: PartialFunction[Request, Unit]) {
+                         val routes: PartialFunction[(Request, ActorRef), Unit]) {
 
     private var started = false
     private var stopped = false
@@ -28,8 +28,8 @@ object MyActorWebserver {
           while (!stopped) {
             val socket = serverSocket.accept()
             println(s"open connection ${socket.hashCode()}")
-              reader ! socket
-            println(s"close connection ${socket.hashCode()}")
+              reader ! (socket, this.routes)
+//            println(s"close connection ${socket.hashCode()}")
           }
       finally
         serverSocket.close()
@@ -42,8 +42,8 @@ object MyActorWebserver {
   def main(args: Array[String]): Unit = {
     val config = new Config()
     val routes =  Routes({
-      case Request(GET("/hello")) => println("actor hello")
-      case Request(POST("/post", body)) => body
+      case (Request(GET("/hello")), responseWriter) => responseWriter ! WriteRaw("actor hello")
+      case (Request(POST("/post", body)), responseWriter) => responseWriter ! WriteRaw(body)
     })
     val webserver = new ActorWebserver(config, routes)
     webserver.start()
