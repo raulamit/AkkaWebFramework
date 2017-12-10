@@ -43,8 +43,10 @@ class Writer extends Actor with ActorLogging{
 
   var socket: Socket = _
   def receive ={
-    case WhoToSend(socket) =>
+    case WhoToSend(socket, request,routes) => {
       this.socket=socket
+      routes(request, this.self)
+    }
     case WriteRaw(response) => {
 
       val output: OutputStream = socket.getOutputStream
@@ -59,4 +61,4 @@ class Writer extends Actor with ActorLogging{
    }
 }
 
-case class WhoToSend(socket: Socket)
+case class WhoToSend(socket: Socket, request: Request, routes: PartialFunction[(Request, ActorRef), Unit])

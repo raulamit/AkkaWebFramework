@@ -44,7 +44,11 @@ object MyActorWebserver {
   def main(args: Array[String]): Unit = {
     val config = new Config()
     val routes =  Routes({
-      case (Request(GET("/hello")), responseWriter) => responseWriter ! WriteRaw("actor hello")
+      case (Request(GET("/hello")), responseWriter) => {
+        println("befor get")
+        responseWriter ! WriteRaw("actor hello")
+        println("after get")
+      }
       case (Request(POST("/post", body)), responseWriter) => responseWriter ! WriteRaw(body)
     })
     val webserver = new ActorWebserver(config, routes)

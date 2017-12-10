@@ -20,10 +20,10 @@ class Reader(val writer: ActorRef) extends Actor {
       val input = new BufferedReader(new InputStreamReader(socket.getInputStream()))
       val request: Request = requestFromServer(input)
       // bang writer to update the socket in its state
-      writer ! WhoToSend(socket)
+      writer ! WhoToSend(socket, request, routes)
 
       //send writer object to the user
-      routes((request, writer))
+
 
     }
   }
