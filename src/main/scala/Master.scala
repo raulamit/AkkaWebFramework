@@ -9,7 +9,7 @@ import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
 
 class WriterMaster extends Actor {
   var router = {
-    val routees = Vector.fill(5) {
+    val routees = Vector.fill(1) {
       val r = context.actorOf(Props[Writer])
       context watch r
       ActorRefRoutee(r)
@@ -18,8 +18,11 @@ class WriterMaster extends Actor {
   }
 
   def receive = {
-    case w: Writer =>
-      router.route(w, sender())
+    case WhoToSend(socket) =>
+      println("hwereffffffffff")
+      router.route(WhoToSend(socket), sender())
+    case WriteRaw(response) =>
+      router.route(WriteRaw(response), sender())
     case Terminated(a) =>
       router = router.removeRoutee(a)
       val r = context.actorOf(Props[Writer])

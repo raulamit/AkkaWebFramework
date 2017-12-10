@@ -43,8 +43,10 @@ class Writer extends Actor with ActorLogging{
 
   var socket: Socket = _
   def receive ={
-    case WhoToSend(socket) =>this.socket=socket
+    case WhoToSend(socket) =>
+      this.socket=socket
     case WriteRaw(response) => {
+
       val output: OutputStream = socket.getOutputStream
       val info: ResponseInfo = ResponseInfo()
       val result = info.withHeader("Content-Length", response.length.toString).serialized + "\r\n\r\n" + response

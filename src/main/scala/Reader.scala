@@ -12,7 +12,7 @@ object Reader {
   def props(writerRef: ActorRef): Props = Props(new Reader(writerRef))
 }
 
-class Reader(writer: ActorRef) extends Actor {
+class Reader(val writer: ActorRef) extends Actor {
 
   def receive = {
 
@@ -21,6 +21,7 @@ class Reader(writer: ActorRef) extends Actor {
       val request: Request = requestFromServer(input)
       // bang writer to update the socket in its state
       writer ! WhoToSend(socket)
+
       //send writer object to the user
       routes((request, writer))
 

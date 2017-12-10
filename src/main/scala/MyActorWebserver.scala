@@ -2,6 +2,7 @@ import java.io._
 import java.net.ServerSocket
 
 import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.routing.FromConfig
 import server.{HttpServer, Request, Response}
 //import server.{FileResponse, HttpServer, Response, TextResponse}
 
@@ -21,7 +22,8 @@ object MyActorWebserver {
     def start(): Unit = if (!started) {
       started = true
       val system: ActorSystem = ActorSystem("helloAkka")
-      val writer: ActorRef = system.actorOf(Writer.props,"writer")
+      val writer: ActorRef = system.actorOf(Props[WriterMaster],"writer")
+      //val writerMaster: ActorRef = system.actorOf(Props[WriterMaster], "router1")
       val reader: ActorRef = system.actorOf(Reader.props(writer), "Reader")
       println("started")
       try
