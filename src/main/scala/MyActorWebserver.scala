@@ -22,9 +22,9 @@ object MyActorWebserver {
     def start(): Unit = if (!started) {
       started = true
       val system: ActorSystem = ActorSystem("helloAkka")
-      val writer: ActorRef = system.actorOf(Props[WriterMaster],"writer")
+      val writer: ActorRef = system.actorOf(MasterWriter.props(config.numberOfActors),"writer")
       //val writerMaster: ActorRef = system.actorOf(Props[WriterMaster], "router1")
-      val reader: ActorRef = system.actorOf(Reader.props(writer), "Reader")
+      val reader: ActorRef = system.actorOf(MasterReader.props(writer, config.numberOfActors), "Reader")
       println("started")
       try
           while (!stopped) {
@@ -46,6 +46,9 @@ object MyActorWebserver {
     val routes =  Routes({
       case (Request(GET("/hello")), responseWriter) => {
         println("befor get")
+        while(true) {
+          val i:Int=0
+        }
         responseWriter ! WriteRaw("actor hello")
         println("after get")
       }

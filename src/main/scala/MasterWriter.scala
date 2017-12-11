@@ -1,15 +1,17 @@
-import akka.actor.{Actor, Props, Terminated}
+import akka.actor.{Actor, ActorRef, Props, Terminated}
 import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
 
 /**
   * Created by rutpatel on 12/9/17.
   */
 
+object MasterWriter {
+  def props(numActors: Int): Props = Props(new MasterWriter(numActors))
+}
 
-
-class WriterMaster extends Actor {
+class MasterWriter(numActors: Int) extends Actor {
   var router = {
-    val routees = Vector.fill(30) {
+    val routees = Vector.fill(numActors) {
       val r = context.actorOf(Props[Writer])
       context watch r
       ActorRefRoutee(r)

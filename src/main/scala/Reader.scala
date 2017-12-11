@@ -21,10 +21,6 @@ class Reader(val writer: ActorRef) extends Actor {
       val request: Request = requestFromServer(input)
       // bang writer to update the socket in its state
       writer ! WhoToSend(socket, request, routes)
-
-      //send writer object to the user
-
-
     }
   }
 
