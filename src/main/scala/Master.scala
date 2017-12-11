@@ -1,35 +1,31 @@
-import akka.actor.{Actor, Props, Terminated}
-import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
+import akka.routing._
 
 /**
   * Created by rutpatel on 12/9/17.
   */
 
+class Master extends Actor {
+  val router1 = context.actorOf(Writer.props.withRouter(FromConfig), "writerRouter")
 
-
-class WriterMaster extends Actor {
-  var router = {
-    val routees = Vector.fill(30) {
-      val r = context.actorOf(Props[Writer])
-      context watch r
-      ActorRefRoutee(r)
-    }
-    Router(RoundRobinRoutingLogic(), routees)
-  }
+  val router2 = context.actorOf(Reader.props(self).withRouter(FromConfig), "readerRouter")
 
   def receive = {
-    case WhoToSend(socket, request,routes) =>
-      println("hwereffffffffff")
-      router.route(WhoToSend(socket, request,routes), sender())
+
+    //writer messages
+    case WhoToSend(socket, request, routes) =>
+      router1 ! (WhoToSend(socket, request, routes))
     case WriteRaw(response) => {
-      println("before master write")
-      router.route(WriteRaw(response), sender())
-      println("after master write")
+      router1 ! (WriteRaw(response), sender())
     }
-    case Terminated(a) =>
-      router = router.removeRoutee(a)
-      val r = context.actorOf(Props[Writer])
-      context watch r
-      router = router.addRoutee(r)
+    //reader messages
+    case ReadReq(socket,routes) => {
+    router2 ! ReadReq(socket,routes)
+    }
   }
+}
+
+object MasterActor extends App{
+  val system: ActorSystem = ActorSystem("webserver")
+  val writerActorRef = system.actorOf(Props[Master],"master")
 }

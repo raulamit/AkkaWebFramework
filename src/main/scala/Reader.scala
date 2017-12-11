@@ -3,28 +3,20 @@
   */
 
 import java.io.{BufferedReader, InputStreamReader}
-import java.net.Socket
 import java.util.NoSuchElementException
-
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorRef, Props}
 
 object Reader {
   def props(writerRef: ActorRef): Props = Props(new Reader(writerRef))
 }
 
-class Reader(val writer: ActorRef) extends Actor {
+class Reader(val master: ActorRef) extends Actor {
 
   def receive = {
-
-    case (socket: Socket, routes : PartialFunction[(Request, ActorRef), Unit]) => {
+    case ReadReq(socket, routes) => {
       val input = new BufferedReader(new InputStreamReader(socket.getInputStream()))
       val request: Request = requestFromServer(input)
-      // bang writer to update the socket in its state
-      writer ! WhoToSend(socket, request, routes)
-
-      //send writer object to the user
-
-
+      sender ! WhoToSend(socket, request, routes)
     }
   }
 
@@ -40,13 +32,13 @@ class Reader(val writer: ActorRef) extends Actor {
       line = input.readLine()
     }
     var buffer = ""
-    try{
-          val i: Int = Integer.parseInt(headers("Content-Length"))
-          val bufferRead = new Array[Char](i)
-          input.read(bufferRead)
-          buffer = buffer.concat(new String(bufferRead))
-    }catch {
-          case e:NoSuchElementException => {
+    try {
+      val i: Int = Integer.parseInt(headers("Content-Length"))
+      val bufferRead = new Array[Char](i)
+      input.read(bufferRead)
+      buffer = buffer.concat(new String(bufferRead))
+    } catch {
+      case e: NoSuchElementException => {
       }
     }
     val request = method match {

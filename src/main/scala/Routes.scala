@@ -17,10 +17,3 @@ object Routes{
 }
 
 
-case class Request private (method: Method)
-case class WriteRaw(rawResponse: String)
-sealed abstract trait Method
-case class GET(path: String) extends Method
-case class DELETE(path: String) extends Method
-case class PUT(path: String, body: String) extends Method
-case class POST(path: String, body: String) extends Method

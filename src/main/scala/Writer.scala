@@ -1,9 +1,10 @@
 
 
-import java.io.{OutputStream}
+import java.io.OutputStream
 import java.net.Socket
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import com.typesafe.config.ConfigFactory
 
 
 /**
@@ -15,7 +16,9 @@ object Writer {
 
 trait Response {
   def info: ResponseInfo
+
   def writeTo(output: OutputStream): Unit
+
   def and(f: ResponseInfo => ResponseInfo): Response
 }
 
@@ -30,25 +33,26 @@ case class ResponseInfo(status: String = "HTTP/1.1 200 OK",
   def serialized: String = status + "\r\n" + headers.map { case (key, value) => s"$key: $value" }.mkString("\r\n")
 }
 
-case class TextResponse(body: String, output: OutputStream,info: ResponseInfo = ResponseInfo()) extends Response {
+case class TextResponse(body: String, output: OutputStream, info: ResponseInfo = ResponseInfo()) extends Response {
 
   override def writeTo(output: OutputStream) = {
     val result = info.withHeader("Content-Length", body.length.toString).serialized + "\r\n\r\n" + body
     output.write(result.getBytes)
     output.flush()
   }
+
   override def and(f: (ResponseInfo) => ResponseInfo) = copy(info = f(info))
 }
-class Writer extends Actor with ActorLogging{
 
+class Writer extends Actor with ActorLogging {
   var socket: Socket = _
-  def receive ={
-    case WhoToSend(socket, request,routes) => {
-      this.socket=socket
+
+  def receive = {
+    case WhoToSend(socket, request, routes) => {
+      this.socket = socket
       routes(request, this.self)
     }
     case WriteRaw(response) => {
-
       val output: OutputStream = socket.getOutputStream
       val info: ResponseInfo = ResponseInfo()
       val result = info.withHeader("Content-Length", response.length.toString).serialized + "\r\n\r\n" + response
@@ -58,7 +62,5 @@ class Writer extends Actor with ActorLogging{
       println(s"close connection ${socket.hashCode()}")
       socket.close()
     }
-   }
+  }
 }
-
-case class WhoToSend(socket: Socket, request: Request, routes: PartialFunction[(Request, ActorRef), Unit])
